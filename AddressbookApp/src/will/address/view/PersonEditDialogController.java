@@ -1,12 +1,12 @@
 package will.address.view;
 
 import javafx.fxml.FXML;
-import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 import will.address.model.Person;
 import will.address.util.DateUtil;
+import will.address.util.AlertUtil;
 
 /**
  * Dialog to edit details of a person.
@@ -146,13 +146,8 @@ public class PersonEditDialogController {
 			return true;
 		} else {
 			// Show the error message.
-			Alert alert = new Alert(AlertType.ERROR);
-			alert.initOwner(dialogStage);
-			alert.setTitle("Invalid Fields");
-			alert.setHeaderText("Please correct invalid fields");
-			alert.setContentText(errorMessage);
-
-			alert.showAndWait();
+			AlertUtil.reportError(AlertType.ERROR, dialogStage, "Invalid Fields", "Please correct invalid fields",
+					errorMessage);
 
 			return false;
 		}

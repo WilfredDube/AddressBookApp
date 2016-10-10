@@ -3,10 +3,9 @@ package will.address.view;
 import java.io.File;
 
 import javafx.fxml.FXML;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Alert.AlertType;
 import javafx.stage.FileChooser;
 import will.address.MainApp;
+import will.address.util.AlertUtil;
 
 /**
  * The controller for the root layout. The root layout provides the basic
@@ -99,12 +98,7 @@ public class RootLayoutController {
 	 */
 	@FXML
 	private void handleAbout() {
-		Alert alert = new Alert(AlertType.INFORMATION);
-		alert.setTitle("AddressApp");
-		alert.setHeaderText("About");
-		alert.setContentText("Author: Marco Jakob\nWebsite: http://code.makery.ch");
-
-		alert.showAndWait();
+		AlertUtil.displayInformation("AddressApp 0.1", "About", "Author: Marco Jakob\nWebsite: http://code.makery.ch");
 	}
 
 	/**
