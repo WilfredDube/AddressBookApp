@@ -1,16 +1,23 @@
 package will.address.view;
 
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.collections.transformation.FilteredList;
+import javafx.collections.transformation.SortedList;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.control.TextField;
 import will.address.MainApp;
 import will.address.model.Person;
 import will.address.util.AlertUtil;
 import will.address.util.DateUtil;
 
 public class PersonOverviewController {
+	@FXML
+	private TextField searchField;
 	@FXML
 	private TableView<Person> personTable;
 	@FXML
@@ -34,6 +41,8 @@ public class PersonOverviewController {
 	// Reference to the main application.
 	private MainApp mainApp;
 
+	private ObservableList<Person> personData = FXCollections.observableArrayList();;
+
 	/**
 	 * The constructor. The constructor is called before the initialize()
 	 * method.
@@ -47,6 +56,7 @@ public class PersonOverviewController {
 	 */
 	@FXML
 	private void initialize() {
+
 		// Initialize the person table with the two columns.
 		firstNameColumn.setCellValueFactory(cellData -> cellData.getValue().firstNameProperty());
 		lastNameColumn.setCellValueFactory(cellData -> cellData.getValue().lastNameProperty());
@@ -58,6 +68,7 @@ public class PersonOverviewController {
 		// changed.
 		personTable.getSelectionModel().selectedItemProperty()
 				.addListener((observable, oldValue, newValue) -> showPersonDetails(newValue));
+
 	}
 
 	/**
@@ -68,8 +79,43 @@ public class PersonOverviewController {
 	public void setMainApp(MainApp mainApp) {
 		this.mainApp = mainApp;
 
+		personData = mainApp.getPersonData();
+
 		// Add observable list data to the table
-		personTable.setItems(mainApp.getPersonData());
+		personTable.setItems(personData);
+
+		FilteredList<Person> filteredData = new FilteredList<>(personData, p -> true);
+
+		// 2. Set the filter Predicate whenever the filter changes.
+		searchField.textProperty().addListener((observable, oldValue, newValue) -> {
+			filteredData.setPredicate(person -> {
+				// If filter text is empty, display all persons.
+				if (newValue == null || newValue.isEmpty()) {
+					return true;
+				}
+
+				// Compare first name and last name of every person with filter
+				// text.
+				String lowerCaseFilter = newValue.toLowerCase();
+
+				if (person.getFirstName().toLowerCase().contains(lowerCaseFilter)) {
+					return true; // Filter matches first name.
+				} else if (person.getLastName().toLowerCase().contains(lowerCaseFilter)) {
+					return true; // Filter matches last name.
+				}
+				return false; // Does not match.
+			});
+		});
+
+		// 3. Wrap the FilteredList in a SortedList.
+		SortedList<Person> sortedData = new SortedList<>(filteredData);
+
+		// 4. Bind the SortedList comparator to the TableView comparator.
+		sortedData.comparatorProperty().bind(personTable.comparatorProperty());
+
+		// 5. Add sorted (and filtered) data to the table.
+		personTable.setItems(sortedData);
+
 	}
 
 	/**
