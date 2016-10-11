@@ -1,9 +1,14 @@
 package will.address.view;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.DatePicker;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
+import javafx.util.StringConverter;
 import will.address.model.Person;
 import will.address.util.DateUtil;
 import will.address.util.AlertUtil;
@@ -26,7 +31,9 @@ public class PersonEditDialogController {
 	@FXML
 	private TextField cityField;
 	@FXML
-	private TextField birthdayField;
+	private DatePicker birthdayField;
+
+	private String pattern = "dd.MM.yyyy";
 
 	private Stage dialogStage;
 	private Person person;
@@ -62,8 +69,30 @@ public class PersonEditDialogController {
 		streetField.setText(person.getStreet());
 		postalCodeField.setText(Integer.toString(person.getPostalCode()));
 		cityField.setText(person.getCity());
-		birthdayField.setText(DateUtil.format(person.getBirthday()));
-		birthdayField.setPromptText("dd.mm.yyyy");
+
+		/* Set initial prompt text according to the dd.MM.yyyy pattern */
+		birthdayField.setPromptText(DateUtil.format(person.getBirthday()));
+		birthdayField.setConverter(new StringConverter<LocalDate>() {
+			DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern(pattern);
+
+			@Override
+			public String toString(LocalDate date) {
+				if (date != null) {
+					return dateFormatter.format(date);
+				} else {
+					return "";
+				}
+			}
+
+			@Override
+			public LocalDate fromString(String string) {
+				if (string != null && !string.isEmpty()) {
+					return LocalDate.parse(string, dateFormatter);
+				} else {
+					return null;
+				}
+			}
+		});
 	}
 
 	/**
@@ -86,7 +115,7 @@ public class PersonEditDialogController {
 			person.setStreet(streetField.getText());
 			person.setPostalCode(Integer.parseInt(postalCodeField.getText()));
 			person.setCity(cityField.getText());
-			person.setBirthday(DateUtil.parse(birthdayField.getText()));
+			person.setBirthday(DateUtil.parse(DateUtil.format(birthdayField.getValue())));
 
 			okClicked = true;
 			dialogStage.close();
@@ -134,10 +163,10 @@ public class PersonEditDialogController {
 			errorMessage += "No valid city!\n";
 		}
 
-		if (birthdayField.getText() == null || birthdayField.getText().length() == 0) {
+		if (birthdayField.getValue() == null || DateUtil.format(birthdayField.getValue()).length() == 0) {
 			errorMessage += "No valid birthday!\n";
 		} else {
-			if (!DateUtil.validDate(birthdayField.getText())) {
+			if (!DateUtil.validDate(DateUtil.format(birthdayField.getValue()))) {
 				errorMessage += "No valid birthday. Use the format dd.mm.yyyy!\n";
 			}
 		}
